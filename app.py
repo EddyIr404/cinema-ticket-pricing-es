@@ -111,7 +111,9 @@ if st.button("🚀 Run Optimization", type="primary"):
             population_size=population_size,
             mutation_sigma=mutation_sigma,
             alpha=alpha
+            max_revenue = results["optimal_price"] * results["total_demand"]
         )
+    
 
     # ==================================================
     # Results
@@ -126,7 +128,7 @@ if st.button("🚀 Run Optimization", type="primary"):
 
     st.metric(
         label="Maximum Revenue",
-        value=f"{max_revenue:.2f}"
+        value=f"{resultmax_revenue:.2f}"
     )
     
     st.metric(
