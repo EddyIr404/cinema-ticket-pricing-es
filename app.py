@@ -1,10 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-from cinema_es_core import (
+from cinema_es_core_demand import (
     load_data,
-    run_es,
-    extract_price_table
+    run_es
 )
 
 # ======================================================
@@ -12,14 +11,31 @@ from cinema_es_core import (
 # ======================================================
 
 st.set_page_config(
-    page_title="Cinema Ticket Pricing Optimization (ES)",
+    page_title="Demand-Based Ticket Pricing (ES)",
     layout="wide"
 )
 
-st.title("🎬 Cinema Ticket Pricing Optimization")
+st.title("🎟️ Demand-Based Cinema Ticket Pricing")
 st.markdown(
-    "Optimize ticket prices using **Evolution Strategies (ES)**. "
-    "Adjust parameters and run the optimizer to observe pricing behavior."
+    "Optimize ticket pricing using **Evolution Strategies (ES)** based on customer demand."
+)
+
+# ======================================================
+# Sidebar – Optimization Mode
+# ======================================================
+
+st.sidebar.header("🧠 Optimization Objective")
+
+objective_mode = st.sidebar.radio(
+    "Select Optimization Mode",
+    options=[
+        "Single-objective (Maximize Revenue)",
+        "Multi-objective (Revenue + Price Stability)"
+    ]
+)
+
+is_multi_objective = (
+    objective_mode == "Multi-objective (Revenue + Price Stability)"
 )
 
 # ======================================================
@@ -28,22 +44,12 @@ st.markdown(
 
 st.sidebar.header("⚙️ Evolution Strategies Parameters")
 
-alpha = st.sidebar.slider(
-    "α (Multi-objective trade-off)",
-    min_value=0.0,
-    max_value=1.0,
-    value=0.1,
-    step=0.05,
-    help="Higher α penalizes price variance more strongly"
-)
-
 population_size = st.sidebar.slider(
     "Population Size (Exploration)",
     min_value=5,
     max_value=50,
     value=10,
-    step=5,
-    help="Larger populations explore more but run slower"
+    step=5
 )
 
 num_generations = st.sidebar.slider(
@@ -51,8 +57,7 @@ num_generations = st.sidebar.slider(
     min_value=10,
     max_value=200,
     value=50,
-    step=10,
-    help="More generations allow better convergence"
+    step=10
 )
 
 mutation_sigma = st.sidebar.slider(
@@ -60,14 +65,23 @@ mutation_sigma = st.sidebar.slider(
     min_value=0.1,
     max_value=5.0,
     value=1.0,
-    step=0.1,
-    help="Higher σ explores more aggressively"
+    step=0.1
 )
 
-use_multi_objective = st.sidebar.checkbox(
-    "Enable Multi-objective Optimization",
-    value=True
-)
+# ------------------------------------------------------
+# Multi-objective ONLY parameter
+# ------------------------------------------------------
+
+alpha = None
+if is_multi_objective:
+    alpha = st.sidebar.slider(
+        "α (Price Stability Trade-off)",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.1,
+        step=0.05,
+        help="Higher α enforces stronger price stability"
+    )
 
 # ======================================================
 # Dataset
@@ -96,7 +110,7 @@ if st.button("🚀 Run Optimization", type="primary"):
             num_generations=num_generations,
             population_size=population_size,
             mutation_sigma=mutation_sigma,
-            alpha=alpha if use_multi_objective else None,
+            alpha=alpha
         )
 
     # ==================================================
@@ -106,11 +120,16 @@ if st.button("🚀 Run Optimization", type="primary"):
     st.subheader("📈 Optimization Results")
 
     st.metric(
+        label="Optimal Ticket Price",
+        value=f"{results['optimal_price']:.2f}"
+    )
+
+    st.metric(
         label="Best Fitness Value",
         value=f"{results['best_fitness']:.2f}"
     )
 
-    # Fitness convergence plot
+    # Convergence curve
     st.line_chart(
         pd.DataFrame(
             results["fitness_history"],
@@ -118,17 +137,13 @@ if st.button("🚀 Run Optimization", type="primary"):
         )
     )
 
-    # Optimized price table
-    price_df = extract_price_table(
-        results["best_solution"],
-        results["seat_types"],
-        results["movie_genres"],
-        results["category_index_map"]
-    )
-
-    st.subheader("💰 Optimized Ticket Prices")
-    st.dataframe(price_df, use_container_width=True)
-
-    st.caption(
-        "Prices are optimized per Seat Type × Movie Genre combination."
-    )
+    # Contextual explanation
+    if is_multi_objective:
+        st.caption(
+            f"Multi-objective optimization applied with α = {alpha}. "
+            f"Reference price = {results['reference_price']:.2f}"
+        )
+    else:
+        st.caption(
+            "Single-objective optimization (revenue maximization only)."
+        )
