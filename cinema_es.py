@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 
 # ======================================================
-# Data Loading & Preprocessing
+# Data Loading & Demand Extraction
 # ======================================================
 
 def load_data(csv_path: str):
     """
-    Load and preprocess cinema ticket dataset.
+    Load dataset and extract demand-relevant fields only.
     """
     df = pd.read_csv(csv_path)
     df["Number_of_Person"] = pd.to_numeric(df["Number_of_Person"], errors="coerce")
@@ -15,46 +15,34 @@ def load_data(csv_path: str):
     return df
 
 
-def build_category_index(df):
+def extract_total_demand(df):
     """
-    Build mapping from (Seat_Type, Movie_Genre) to vector index.
+    Aggregate total demand from dataset.
     """
-    seat_types = df["Seat_Type"].unique()
-    movie_genres = df["Movie_Genre"].unique()
-
-    category_index_map = {}
-    idx = 0
-    for seat in seat_types:
-        for genre in movie_genres:
-            category_index_map[(seat, genre)] = idx
-            idx += 1
-
-    return seat_types, movie_genres, category_index_map
+    return df["Number_of_Person"].sum()
 
 
 # ======================================================
-# Fitness Functions
+# Fitness Functions (Demand-Based)
 # ======================================================
 
-def compute_fitness(candidate, df, category_index_map):
+def compute_fitness(price, total_demand):
     """
-    Single-objective fitness: maximize total revenue.
+    Revenue-only fitness:
+    Revenue = price × demand
     """
-    revenue = 0.0
-    for _, row in df.iterrows():
-        idx = category_index_map[(row["Seat_Type"], row["Movie_Genre"])]
-        revenue += candidate[idx] * row["Number_of_Person"]
-    return revenue
+    return price * total_demand
 
 
-def compute_fitness_multiobjective(candidate, df, category_index_map, alpha):
+def compute_fitness_multiobjective(price, total_demand, alpha, reference_price):
     """
     Multi-objective fitness:
-    Maximize revenue, minimize price variance.
+    - Maximize revenue
+    - Penalize deviation from stable/reference price
     """
-    revenue = compute_fitness(candidate, df, category_index_map)
-    price_variance = np.var(candidate)
-    return revenue - alpha * price_variance
+    revenue = price * total_demand
+    stability_penalty = (price - reference_price) ** 2
+    return revenue - alpha * stability_penalty
 
 
 # ======================================================
@@ -72,30 +60,33 @@ def run_es(
     alpha=None,
 ):
     """
-    Run Evolution Strategies optimization.
-
-    If alpha is None → revenue-only optimization
-    If alpha is provided → multi-objective optimization
+    Run demand-based Evolution Strategies optimization.
     """
 
-    seat_types, movie_genres, category_index_map = build_category_index(df)
-    num_variables = len(category_index_map)
+    total_demand = extract_total_demand(df)
 
-    # ----- Initialize population -----
+    # Use historical mean price as stability reference
+    reference_price = df["Ticket_Price"].mean() if "Ticket_Price" in df else (
+        price_min + price_max
+    ) / 2
+
+    # ----- Initialize population (1D price) -----
     population = np.random.uniform(
-        price_min, price_max, size=(population_size, num_variables)
+        price_min, price_max, size=(population_size, 1)
     )
     population = np.round(population, 2)
 
     # ----- Initial fitness -----
     if alpha is None:
         fitness_scores = np.array([
-            compute_fitness(c, df, category_index_map) for c in population
+            compute_fitness(p[0], total_demand) for p in population
         ])
     else:
         fitness_scores = np.array([
-            compute_fitness_multiobjective(c, df, category_index_map, alpha)
-            for c in population
+            compute_fitness_multiobjective(
+                p[0], total_demand, alpha, reference_price
+            )
+            for p in population
         ])
 
     best_fitness_history = []
@@ -106,27 +97,26 @@ def run_es(
 
         for parent in population:
             for _ in range(offspring_per_parent):
-                child = parent + np.random.normal(
-                    0, mutation_sigma, size=num_variables
-                )
-                child = np.clip(child, price_min, price_max)
-                child = np.round(child, 2)
-                offspring.append(child)
+                child_price = parent[0] + np.random.normal(0, mutation_sigma)
+                child_price = np.clip(child_price, price_min, price_max)
+                offspring.append([round(child_price, 2)])
 
         offspring = np.array(offspring)
 
         # Evaluate offspring
         if alpha is None:
             offspring_fitness = np.array([
-                compute_fitness(c, df, category_index_map) for c in offspring
+                compute_fitness(p[0], total_demand) for p in offspring
             ])
         else:
             offspring_fitness = np.array([
-                compute_fitness_multiobjective(c, df, category_index_map, alpha)
-                for c in offspring
+                compute_fitness_multiobjective(
+                    p[0], total_demand, alpha, reference_price
+                )
+                for p in offspring
             ])
 
-        # Selection
+        # Selection (μ + λ)
         combined_population = np.vstack((population, offspring))
         combined_fitness = np.concatenate((fitness_scores, offspring_fitness))
 
@@ -136,36 +126,13 @@ def run_es(
 
         best_fitness_history.append(fitness_scores.max())
 
-    # ----- Final results -----
+    # ----- Final result -----
     best_idx = np.argmax(fitness_scores)
-    best_solution = population[best_idx]
-    best_fitness = fitness_scores[best_idx]
 
     return {
-        "best_solution": best_solution,
-        "best_fitness": best_fitness,
+        "optimal_price": population[best_idx][0],
+        "best_fitness": fitness_scores[best_idx],
         "fitness_history": best_fitness_history,
-        "seat_types": seat_types,
-        "movie_genres": movie_genres,
-        "category_index_map": category_index_map,
+        "total_demand": total_demand,
+        "reference_price": reference_price,
     }
-
-
-# ======================================================
-# Output Formatting (for Streamlit display)
-# ======================================================
-
-def extract_price_table(best_solution, seat_types, movie_genres, category_index_map):
-    """
-    Convert optimized price vector into a readable table.
-    """
-    rows = []
-    for seat in seat_types:
-        for genre in movie_genres:
-            idx = category_index_map[(seat, genre)]
-            rows.append([seat, genre, best_solution[idx]])
-
-    return pd.DataFrame(
-        rows,
-        columns=["Seat_Type", "Movie_Genre", "Optimized_Price"]
-    )
