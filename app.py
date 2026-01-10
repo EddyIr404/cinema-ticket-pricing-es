@@ -110,10 +110,9 @@ if st.button("🚀 Run Optimization", type="primary"):
             num_generations=num_generations,
             population_size=population_size,
             mutation_sigma=mutation_sigma,
-            alpha=alpha,
-            max_revenue = results["optimal_price"] * results["total_demand"]
+            alpha=alpha
         )
-    
+        max_revenue = results["optimal_price"] * results["total_demand"]
 
     # ==================================================
     # Results
