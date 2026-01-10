@@ -125,7 +125,12 @@ if st.button("🚀 Run Optimization", type="primary"):
     )
 
     st.metric(
-        label="Best Fitness Value",
+    label="Maximum Revenue",
+    value=f"{max_revenue:.2f}"
+    )
+    
+    st.metric(
+        label="Best Fitness (Objective Value)",
         value=f"{results['best_fitness']:.2f}"
     )
 
