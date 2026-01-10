@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from cinema_es_core_demand import (
+from cinema_es import (
     load_data,
     run_es
 )
