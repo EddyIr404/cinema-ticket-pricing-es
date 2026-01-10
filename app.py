@@ -127,7 +127,7 @@ if st.button("🚀 Run Optimization", type="primary"):
 
     st.metric(
         label="Maximum Revenue",
-        value=f"{resultmax_revenue:.2f}"
+        value=f"{max_revenue:.2f}"
     )
     
     st.metric(
