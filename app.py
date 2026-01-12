@@ -127,7 +127,6 @@ if st.button("🚀 Run Optimization", type="primary"):
         )
     )
 
-
     st.metric(
         label="Maximum Revenue",
         value=f"{max_revenue:.2f}"
@@ -136,14 +135,6 @@ if st.button("🚀 Run Optimization", type="primary"):
     st.metric(
         label="Best Fitness (Objective Value)",
         value=f"{results['best_fitness']:.2f}"
-    )
-
-    # Convergence curve
-    st.line_chart(
-        pd.DataFrame(
-            results["fitness_history"],
-            columns=["Best Fitness"]
-        )
     )
 
     # Contextual explanation
