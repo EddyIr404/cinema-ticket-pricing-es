@@ -68,6 +68,16 @@ mutation_sigma = st.sidebar.slider(
     step=0.1
 )
 
+beta = st.sidebar.slider(
+    "β (Demand Price Sensitivity)",
+    min_value=0.01,
+    max_value=0.20,
+    value=0.05,
+    step=0.01,
+    help="Higher β means demand drops faster as price increases"
+)
+
+
 # ------------------------------------------------------
 # Multi-objective ONLY parameter
 # ------------------------------------------------------
@@ -119,6 +129,11 @@ if st.button("🚀 Run Optimization", type="primary"):
     # ==================================================
 
     st.subheader("📉 Ticket Price Evolution")
+
+    st.metric(
+        label="Optimal Price",
+        value=f"{optimal_price:.2f}"
+    )
 
     st.line_chart(
         pd.DataFrame(
