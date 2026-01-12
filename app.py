@@ -132,7 +132,7 @@ if st.button("🚀 Run Optimization", type="primary"):
 
     st.metric(
         label="Optimal Price",
-        value=f"{optimal_price:.2f}"
+        value=f"{results["optimal_price"]:.2f}"
     )
 
     st.line_chart(
