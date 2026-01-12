@@ -26,21 +26,19 @@ def extract_total_demand(df):
 # Fitness Functions (Demand-Based)
 # ======================================================
 
-def compute_fitness(price, total_demand):
+def compute_fitness(price, total_demand, beta):
     """
-    Revenue-only fitness:
-    Revenue = price × demand
+    Revenue with price-sensitive demand:
+    demand decreases as price increases
     """
-    return price * total_demand
+    effective_demand = total_demand * np.exp(-beta * price)
+    return price * effective_demand
 
 
-def compute_fitness_multiobjective(price, total_demand, alpha, reference_price):
-    """
-    Multi-objective fitness:
-    - Maximize revenue
-    - Penalize deviation from stable/reference price
-    """
-    revenue = price * total_demand
+def compute_fitness_multiobjective(
+    price, total_demand, alpha, reference_price, beta
+):
+    revenue = compute_fitness(price, total_demand, beta)
     stability_penalty = (price - reference_price) ** 2
     return revenue - alpha * stability_penalty
 
@@ -58,7 +56,9 @@ def run_es(
     price_min=10.01,
     price_max=24.99,
     alpha=None,
+    beta=0.05,
 ):
+
     """
     Run demand-based Evolution Strategies optimization.
     """
@@ -79,12 +79,12 @@ def run_es(
     # ----- Initial fitness -----
     if alpha is None:
         fitness_scores = np.array([
-            compute_fitness(p[0], total_demand) for p in population
+            compute_fitness(p[0], total_demand, beta) for p in population
         ])
     else:
         fitness_scores = np.array([
             compute_fitness_multiobjective(
-                p[0], total_demand, alpha, reference_price
+                p[0], total_demand, alpha, reference_price, beta
             )
             for p in population
         ])
