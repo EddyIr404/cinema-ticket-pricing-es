@@ -91,6 +91,9 @@ def run_es(
 
     best_fitness_history = []
 
+    best_price_history = []
+
+
     # ----- Evolution loop -----
     for _ in range(num_generations):
         offspring = []
@@ -126,13 +129,17 @@ def run_es(
 
         best_fitness_history.append(fitness_scores.max())
 
+        best_price_history.append(population[0][0])
+
     # ----- Final result -----
     best_idx = np.argmax(fitness_scores)
 
     return {
-        "optimal_price": population[best_idx][0],
-        "best_fitness": fitness_scores[best_idx],
-        "fitness_history": best_fitness_history,
-        "total_demand": total_demand,
-        "reference_price": reference_price,
-    }
+    "optimal_price": population[best_idx][0],
+    "best_fitness": fitness_scores[best_idx],
+    "fitness_history": best_fitness_history,  # optional now
+    "price_history": best_price_history,       # main focus
+    "total_demand": total_demand,
+    "reference_price": reference_price,
+}
+
