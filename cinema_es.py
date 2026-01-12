@@ -109,12 +109,12 @@ def run_es(
         # Evaluate offspring
         if alpha is None:
             offspring_fitness = np.array([
-                compute_fitness(p[0], total_demand) for p in offspring
+                compute_fitness(p[0], total_demand, beta) for p in offspring
             ])
         else:
             offspring_fitness = np.array([
                 compute_fitness_multiobjective(
-                    p[0], total_demand, alpha, reference_price
+                    p[0], total_demand, alpha, reference_price, beta
                 )
                 for p in offspring
             ])
