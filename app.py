@@ -118,12 +118,15 @@ if st.button("🚀 Run Optimization", type="primary"):
     # Results
     # ==================================================
 
-    st.subheader("📈 Optimization Results")
+    st.subheader("📉 Ticket Price Evolution")
 
-    st.metric(
-        label="Optimal Ticket Price",
-        value=f"{results['optimal_price']:.2f}"
+    st.line_chart(
+        pd.DataFrame(
+            results["price_history"],
+            columns=["Ticket Price"]
+        )
     )
+
 
     st.metric(
         label="Maximum Revenue",
