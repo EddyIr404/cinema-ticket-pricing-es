@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from cinema_es import (
     load_data,
@@ -139,12 +140,25 @@ if st.button("🚀 Run Optimization", type="primary"):
         value=f"{results["optimal_price"]:.2f}"
     )
 
-    st.line_chart(
-        pd.DataFrame(
-            results["price_history"],
-            columns=["Ticket Price"]
-        )
-    )
+    price_history = results["price_history"]
+    
+    fig, ax = plt.subplots()
+    
+    ax.plot(price_history)
+    ax.set_xlabel("Generation")
+    ax.set_ylabel("Ticket Price")
+
+    # ---- Zoom y-axis around observed prices ----
+    price_min = min(price_history)
+    price_max = max(price_history)
+    margin = (price_max - price_min) * 0.2 + 0.01
+
+    ax.set_ylim(price_min - margin, price_max + margin)
+
+    ax.set_title("Optimal Ticket Price Evolution")
+
+    st.pyplot(fig)
+
 
     st.metric(
         label="Maximum Revenue",
