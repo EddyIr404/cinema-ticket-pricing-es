@@ -123,7 +123,16 @@ def run_es(
         combined_population = np.vstack((population, offspring))
         combined_fitness = np.concatenate((fitness_scores, offspring_fitness))
 
-        best_indices = np.argsort(combined_fitness)[::-1][:population_size]
+        # --- Add small noise to reduce premature convergence ---
+        fitness_noise = np.random.normal(
+        loc=0.0,
+        scale=0.01 * np.std(combined_fitness),
+        size=len(combined_fitness)
+        )
+
+        noisy_fitness = combined_fitness + fitness_noise
+
+        best_indices = np.argsort(noisy_fitness)[::-1][:population_size]
         population = combined_population[best_indices]
         fitness_scores = combined_fitness[best_indices]
 
