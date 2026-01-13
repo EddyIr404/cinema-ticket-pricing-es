@@ -123,10 +123,9 @@ def run_es(
         combined_population = np.vstack((population, offspring))
         combined_fitness = np.concatenate((fitness_scores, offspring_fitness))
 
-        best_indices = np.argsort(noisy_fitness)[::-1][:population_size]
+        best_indices = np.argsort(combined_fitness)[::-1][:population_size]
         population = combined_population[best_indices]
         fitness_scores = combined_fitness[best_indices]
-
 
         best_fitness_history.append(fitness_scores.max())
 
