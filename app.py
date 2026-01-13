@@ -75,6 +75,7 @@ mutation_sigma = st.sidebar.slider(
 # ------------------------------------------------------
 
 alpha = None
+beta = 0.05
 if is_multi_objective:
     alpha = st.sidebar.slider(
         "α (Price Stability Trade-off)",
