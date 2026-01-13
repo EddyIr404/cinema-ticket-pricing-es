@@ -56,7 +56,7 @@ def run_es(
     price_min=10.01,
     price_max=24.99,
     alpha=None,
-    beta=0.05,
+    beta=None,
 ):
 
     """
