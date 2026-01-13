@@ -122,7 +122,11 @@ if st.button("🚀 Run Optimization", type="primary"):
             mutation_sigma=mutation_sigma,
             alpha=alpha
         )
-        max_revenue = results["optimal_price"] * results["total_demand"]
+        # Raw revenue (internal, real)
+        raw_revenue = results["optimal_price"] * results["total_demand"]
+
+        # Normalized revenue for display
+        display_revenue = raw_revenue / 1000
 
     # ==================================================
     # Results
