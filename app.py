@@ -69,15 +69,6 @@ mutation_sigma = st.sidebar.slider(
     step=0.1
 )
 
-beta = st.sidebar.slider(
-    "β (Demand Price Sensitivity)",
-    min_value=0.01,
-    max_value=0.20,
-    value=0.05,
-    step=0.01,
-    help="Higher β means demand drops faster as price increases"
-)
-
 
 # ------------------------------------------------------
 # Multi-objective ONLY parameter
@@ -92,6 +83,14 @@ if is_multi_objective:
         value=0.1,
         step=0.05,
         help="Higher α enforces stronger price stability"
+    )
+    beta = st.sidebar.slider(
+        "β (Demand Price Sensitivity)",
+        min_value=0.01,
+        max_value=0.20,
+        value=0.05,
+        step=0.01,
+        help="Higher β means demand drops faster as price increases"
     )
 
 # ======================================================
