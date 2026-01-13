@@ -53,8 +53,8 @@ def run_es(
     population_size=10,
     offspring_per_parent=2,
     mutation_sigma=1.0,
-    price_min=10.01,
-    price_max=24.99,
+    price_min=10.99,
+    price_max=29.99,
     alpha=None,
     beta=0.05,
 ):
