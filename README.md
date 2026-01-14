@@ -4,8 +4,8 @@ This project explores the use of Evolutionary Strategies (ES) to optimize cinema
 
 ## Dataset
 - 1,440 transaction records
-- Attributes include seat type, movie genre, ticket price, and number of persons
+- Attributes include ticket price and number of persons
 
 ## Objectives
 - Maximize estimated revenue
-- Improve price stability across categories
+- Improve price stability based on customer demands
