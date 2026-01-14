@@ -141,6 +141,16 @@ if st.button("🚀 Run Optimization", type="primary"):
         value=f"{results["optimal_price"]:.2f}"
     )
 
+    st.metric(
+        label="Maximum Revenue",
+        value=f"{display_revenue:.2f}"
+    )
+    
+    st.metric(
+        label="Best Fitness (Objective Value)",
+        value=f"{results['best_fitness']:.2f}"
+    )
+
     price_history = results["price_history"]
     
     fig, ax = plt.subplots()
@@ -159,17 +169,6 @@ if st.button("🚀 Run Optimization", type="primary"):
     ax.set_title("Optimal Ticket Price Evolution")
 
     st.pyplot(fig)
-
-
-    st.metric(
-        label="Maximum Revenue",
-        value=f"{display_revenue:.2f}"
-    )
-    
-    st.metric(
-        label="Best Fitness (Objective Value)",
-        value=f"{results['best_fitness']:.2f}"
-    )
 
     # Contextual explanation
     if is_multi_objective:
